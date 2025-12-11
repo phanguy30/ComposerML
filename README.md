@@ -1,48 +1,88 @@
-# composerml
+# ComposerML
 
 ## Overview
 
-Datamint is a lightweight Python library for music generation built on a fully custom neural-network engine, inspired by the micrograd repo by Andrej Karpathy  
-It contains modular MLP components, training utilities, and a complete pipeline for preparing MIDI data to train a model to generate new music.
+**ComposerML** is a lightweight Python library for music generation, built on a fully custom neural-network engine inspired by Andrej Karpathy’s *micrograd*.  
+The package includes modular MLP components, training utilities, and a full pipeline for converting MIDI files into training data for generative music models.
 
-### Sub-Package 1 - Models
+An example workflow is provided in **Example.ipynb**, and **untrained_Test.mid** demonstrates the model’s MIDI output after training.
 
-- Value.py - Just regulars numbers but supports differentiation/gradient calculation
+---
 
-- Neuron.py - A neuron that receives a list of inputs (list of value objects) and produces one output (a value object).
+## Key Features
 
-- Layer.py  - A group of neurons working together to produce an output
+- **Custom Neural Network Engine**  
+  Build and train multilayer perceptron (MLP) models with flexible sizes and activation functions.
 
-- MLPnetwork.py  - Builds a multilayer perceptron by stacking layers. Handles forward passes and supports classification or regression depending on configuration.
+- **Trainer Module**  
+  Initialize a model, pass it into a `Trainer`, and call `trainer.fit()` to optimize it on your dataset.
 
-- MLPMusicGen.py - Inherits MLPnetwork.py. Creates an MLP specific to music generation. Has an additional function call generate_piece that ask the user for a seed/context of music and generate a piece of music of fix length
-  
-### Sub-Package 2 - Trainer
+- **Automated MIDI Data Processing**  
+  With `MusicDataset`, simply place all your MIDI files into one folder—ComposerML automatically converts them into training sequences.
 
-- evaluator.py - this module contains helper function to evaluate the model
-- Trainer.py - will fit the model using training data, uses helper functions/classes contained in the following sub-folders.
-    - Folder 1: Losses Module
-        - loss.py - parent class
-        - bce_loss.py - binary cross entropy loss
-        - ce_loss.py - cross entropy loss function
-        - Linear_loss.py  - linear loss function
-    - Folder 2: Optimizer Module
-        - optimizer.py - parent class
-        - SGD.py - stochastic gradient descent
+- **Music Generation Utilities**  
+  Use `PlaySong.generate_midi()` to save generated notes into a MIDI file, and `PlaySong.play_midi()` to play the output.
 
-### Sub-Package 3 - Music Generation
+---
 
-This package provides the complete pipeline for preparing MIDI data, building datasets, and generating or playing music.
+## Basic Usage
 
-- midi_to_dataset.py - Utilities for loading MIDI files and extracting note sequences.  
+1. **Initialize a model**
+   ```python
+   model = MLPMusicGen(context_length=20, hidden_sizes=[128], activation_type="relu")
+   ```
 
+2. **Create a trainer**
+   ```python
+   trainer = Trainer(model)
+   ```
 
-- music_dataset.py  - Main class that allow the user to input a folder containing midi files and generate a dataset including (features: context-notes) and targets (next note)
+3. **Prepare training data with `MusicDataset`**
 
+   `MusicDataset("path/to/midi_folder")` automatically loads all `.mid` files in the folder, extracts notes, and returns training sequences ready for the model.
 
-- play_song.py  - Once the model generate notes, the user then can initialize this class with the notes, and music will play.
+   Example:
+   ```python
+   dataset = MusicDataset("my_midi_files/")
+   training_data = dataset.data
+   ```
 
-- Analysis.py - analyzes the distribution of the notes output by our network (in the music generation branch)
+4. **Fit the model**
+   ```python
+   trainer.fit(training_data.x, training_data.y)
+   ```
 
+5. **Generate music**
+   ```python
+   # Generate a sequence of notes
+   notes = model.generate_piece(num_notes=200)
 
-Example.ipynb provides an example on how to use this package and the oputput file untrained_Test.mid is the output midifile of our network after training.
+   # Save to MIDI and play
+   PlaySong.generate_midi(notes, "output.mid")
+   PlaySong.play_midi("output.mid")
+   ```
+
+---
+
+## Workflow Summary
+
+1. User defines model size and architecture.  
+2. `MusicDataset` prepares MIDI data automatically.  
+3. `Trainer` fits the model using backpropagation.  
+4. The trained model generates new music as note sequences.  
+5. `PlaySong` saves and plays the resulting MIDI file.
+
+---
+
+## File Structure
+
+- `models/` — MLP components and the main `MLPMusicGen` class  
+- `training/` — trainer, optimizer, and training utilities  
+- `music_generation/` — MIDI loading and dataset creation utilities  
+- `examples.ipynb` — example notebook demonstrating full workflow  
+- `example_music/` — sample MIDI files for training  
+- `model_output_examples/` — example generated MIDI outputs  
+
+---
+
+ComposerML aims to provide a simple, transparent, and fully customizable foundation for neural music generation.
